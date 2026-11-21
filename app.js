@@ -46,6 +46,8 @@ function drawDemo(){
  d.strokeStyle='#a5d5d2';d.lineWidth=3;
  for(let x=0;x<1280;x+=100){d.beginPath();d.moveTo(x,0);d.lineTo(x,960);d.stroke();}
  for(let y=0;y<960;y+=100){d.beginPath();d.moveTo(0,y);d.lineTo(1280,y);d.stroke();}
+ d.fillStyle='#f7afdd';d.beginPath();d.ellipse(640,438,62,50,0,0,Math.PI*2);d.fill();
+ d.beginPath();d.moveTo(588,438);d.lineTo(550,408);d.lineTo(550,468);d.closePath();d.fill();
  d.fillStyle='#fff';d.beginPath();d.arc(1000,240,32,0,Math.PI*2);d.fill();
 }
 drawDemo();
