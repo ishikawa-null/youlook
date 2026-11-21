@@ -3,7 +3,7 @@
 <body>
 <main class="app">
 <header><a class="brand" href="./" aria-label="ゆるっく ホーム"><img class="logo" src="logo.png" width="602" height="366" alt="YOUR LOVELY LOOK"></a><button class="icon help" id="help" aria-label="使い方">?</button></header>
-<div class="intro"><p class="eyebrow">YOU LOOK. YOU CREATE.</p><h1>いつもの景色を、<br>ちょっと曲げる。</h1></div>
+<div class="intro"><p class="eyebrow">YOU LOOK. YOU CREATE.</p><h1>いつもの景色を<br>ちょっと曲げる</h1></div>
 <div class="source-tabs"><button id="cameraTab" class="active">撮影する</button><button id="fileTab">動画を読み込む</button></div><input id="videoFile" type="file" accept="video/*" hidden>
 <section class="camera" aria-label="カメラ">
 <div class="viewfinder" id="viewfinder">
@@ -19,7 +19,9 @@
 <div class="range-labels"><span>まっすぐ</span><span>ぐにゃぐにゃ</span></div>
 <div class="frame-row"><span class="control-label">フレーム</span><div class="frame-options" role="group" aria-label="フレームを選択"><button data-frame="none" class="swatch selected" aria-label="フレームなし" aria-pressed="true"><span class="none-mark">／</span></button><button data-frame="wave" class="swatch wave" aria-label="ピンクのなみなみ枠" aria-pressed="false"><span></span></button><button data-frame="supplied" class="swatch supplied" aria-label="文字と色を編集できる波フレーム" aria-pressed="false"><span></span></button><button id="upload" class="upload" aria-label="自分のフレームを追加">＋ 追加</button></div></div>
 <div id="waveEditor" class="wave-editor" hidden>
-<label for="waveText">波の上の文字</label><input id="waveText" type="text" maxlength="60" value="I am System Engineer" placeholder="好きな文字を入力（空欄もOK）" autocomplete="off">
+<label for="waveText">文字</label><input id="waveText" type="text" maxlength="60" value="I am System Engineer" placeholder="好きな文字を入力（空欄もOK）" autocomplete="off">
+<div class="pos-row"><span>たて</span><div class="pos-choices" role="group" aria-label="文字のたて位置"><button data-v="top" aria-pressed="false">上</button><button data-v="middle" aria-pressed="false">真ん中</button><button data-v="wave" aria-pressed="true">波の上</button><button data-v="bottom" aria-pressed="false">下</button></div></div>
+<div class="pos-row"><span>よこ</span><div class="pos-choices" role="group" aria-label="文字のよこ位置"><button data-h="left" aria-pressed="false">左</button><button data-h="center" aria-pressed="true">真ん中</button><button data-h="right" aria-pressed="false">右</button></div></div>
 <div class="wave-colors"><label>波の色<input id="waveColor" type="color" value="#00b1b1"></label><label>文字の色<input id="textColor" type="color" value="#f7afdd"></label><button id="resetWave">元に戻す</button></div>
 </div>
 <div id="frameEditor" class="wave-editor frame-editor" hidden><div class="wave-colors"><label>枠の色<input id="frameColor" type="color" value="#f7afdd"></label><button id="resetFrame">元に戻す</button></div></div>

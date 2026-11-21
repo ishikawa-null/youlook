@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const out = $('output'), ctx = out.getContext('2d', {alpha:false});
 const cameraVideo = $('source');
 let fileVideo, kind='camera', cameraStream=null, facing='environment', mode='video', strength=.6;
-let waveText='I am System Engineer', waveColor='#00b1b1', textColor='#f7afdd', frameColor='#f7afdd';
+let waveText='I am System Engineer', waveColor='#00b1b1', textColor='#f7afdd', frameColor='#f7afdd', textV='wave', textH='center';
 const waveLayer=document.createElement('canvas');let waveDirty=true;
 function buildWave(){
  const w=out.width,h=out.height;waveLayer.width=w;waveLayer.height=h;const c=waveLayer.getContext('2d');
@@ -10,10 +10,12 @@ function buildWave(){
  c.fillStyle=waveColor;c.beginPath();c.moveTo(0,h);for(let x=0;x<=w;x+=2)c.lineTo(x,waveY(x));c.lineTo(w,h);c.closePath();c.fill();
  if(waveText){let size=h*.073;c.font=`${size}px WaveDot, monospace`;const total=c.measureText(waveText).width;if(total>w*.86)size*=w*.86/total;
  c.font=`${size}px WaveDot, monospace`;c.fillStyle=textColor;c.strokeStyle=textColor;c.lineWidth=Math.max(.4,size*.025);c.textBaseline='alphabetic';
- let x=(w-c.measureText(waveText).width)/2;for(const char of Array.from(waveText)){const width=c.measureText(char).width,y=waveY(x+width/2)-size*.12;c.fillText(char,x,y);c.strokeText(char,x,y);x+=width;}}
+ const textW=c.measureText(waveText).width,margin=w*.05;let x=textH==='left'?margin:textH==='right'?w-textW-margin:(w-textW)/2;x=Math.max(0,x);
+ const flatY=textV==='top'?h*.05+size:textV==='middle'?h*.5+size*.35:textV==='bottom'?h*.915+size*.35:null;
+ for(const char of Array.from(waveText)){const width=c.measureText(char).width,y=flatY??waveY(x+width/2)-size*.12;c.fillText(char,x,y);c.strokeText(char,x,y);x+=width;}}
  waveDirty=false;
 }
-function saveWave(){try{localStorage.setItem('youlook.wave',JSON.stringify({waveText,waveColor,textColor,frameColor}));}catch{}}
+function saveWave(){try{localStorage.setItem('youlook.wave',JSON.stringify({waveText,waveColor,textColor,frameColor,textV,textH}));}catch{}}
 
 let frame='none', customImage=null, cameraBusy=false, recording=false, finalizing=false;
 let recorder=null, recordingStream=null, micStream=null, chunks=[], bytes=0, started=0, recordTimer=null;
@@ -44,11 +46,7 @@ function drawDemo(){
  d.strokeStyle='#a5d5d2';d.lineWidth=3;
  for(let x=0;x<1280;x+=100){d.beginPath();d.moveTo(x,0);d.lineTo(x,960);d.stroke();}
  for(let y=0;y<960;y+=100){d.beginPath();d.moveTo(0,y);d.lineTo(1280,y);d.stroke();}
- d.fillStyle='#f7afdd';d.beginPath();d.ellipse(660,440,235,180,0,0,Math.PI*2);d.fill();
- d.beginPath();d.moveTo(450,440);d.lineTo(285,320);d.lineTo(285,560);d.closePath();d.fill();
- d.fillStyle='#073c42';d.beginPath();d.arc(735,405,15,0,Math.PI*2);d.fill();
- d.strokeStyle='#073c42';d.lineWidth=8;d.beginPath();d.arc(775,445,34,.2,1.5);d.stroke();
- d.fillStyle='#fff';for(const [x,y,r] of [[1000,240,32],[1050,130,19],[170,730,30]]){d.beginPath();d.arc(x,y,r,0,Math.PI*2);d.fill();}
+ d.fillStyle='#fff';d.beginPath();d.arc(1000,240,32,0,Math.PI*2);d.fill();
 }
 drawDemo();
 function setSize(ratio){if(recording||finalizing)return;ratio=Math.max(.4,Math.min(2.5,ratio));let w,h;if(ratio>=1){w=gl?1280:640;h=Math.round(w/ratio/2)*2;}else{h=gl?1280:640;w=Math.round(h*ratio/2)*2;}out.width=w;out.height=h;waveDirty=true;shaderCanvas.width=w;shaderCanvas.height=h;$('viewfinder').style.aspectRatio=`${w} / ${h}`;if(gl)gl.viewport(0,0,w,h);}
@@ -95,7 +93,7 @@ function refresh(){
  $('cameraChoices').hidden=kind!=='camera';for(const [id,side] of [['frontCamera','user'],['backCamera','environment']]){$(id).disabled=locked;$(id).setAttribute('aria-pressed',String(facing===side));}
  for(const id of ['waveText','waveColor','textColor','resetWave','frameColor','resetFrame'])$(id).disabled=locked;
  for(const id of ['ratio','upload','mic','cameraTab','fileTab','removeFrame','pauseCamera','playFile','seek'])if($(id))$(id).disabled=locked;
- document.querySelectorAll('[data-frame],[data-mode]').forEach(b=>b.disabled=locked);
+ document.querySelectorAll('[data-frame],[data-mode],[data-v],[data-h]').forEach(b=>b.disabled=locked);
  $('strength').disabled=kind==='file'&&locked;
  $('start').hidden=kind==='file'?fileLoaded:!!cameraStream;
  $('start').disabled=cameraBusy||finalizing;
@@ -211,12 +209,14 @@ function init(){
  window.addEventListener('beforeunload',e=>{if(recording||finalizing){e.preventDefault();e.returnValue='';}});
  shaderCanvas.addEventListener('webglcontextlost',e=>{e.preventDefault();drawFailed=true;if(recording)stopRecording();error('映像処理が停止しました。保存後にページを開き直してください。');refresh();});
  refresh();
- try{const saved=JSON.parse(localStorage.getItem('youlook.wave')||'null');if(saved){if(typeof saved.waveText==='string')waveText=saved.waveText.slice(0,60);if(/^#[0-9a-f]{6}$/i.test(saved.waveColor))waveColor=saved.waveColor;if(/^#[0-9a-f]{6}$/i.test(saved.textColor))textColor=saved.textColor;if(/^#[0-9a-f]{6}$/i.test(saved.frameColor))frameColor=saved.frameColor;}}catch{}
+ try{const saved=JSON.parse(localStorage.getItem('youlook.wave')||'null');if(saved){if(typeof saved.waveText==='string')waveText=saved.waveText.slice(0,60);if(/^#[0-9a-f]{6}$/i.test(saved.waveColor))waveColor=saved.waveColor;if(/^#[0-9a-f]{6}$/i.test(saved.textColor))textColor=saved.textColor;if(/^#[0-9a-f]{6}$/i.test(saved.frameColor))frameColor=saved.frameColor;if(['top','middle','wave','bottom'].includes(saved.textV))textV=saved.textV;if(['left','center','right'].includes(saved.textH))textH=saved.textH;}}catch{}
+ const syncPos=()=>{document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===textV)));document.querySelectorAll('[data-h]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.h===textH)));waveDirty=true;};syncPos();
+ document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{textV=b.dataset.v;syncPos();saveWave();});document.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{textH=b.dataset.h;syncPos();saveWave();});
  const syncFrame=()=>{$('frameColor').value=frameColor;document.documentElement.style.setProperty('--frame',frameColor);};syncFrame();
  $('frameColor').oninput=e=>{frameColor=e.target.value;syncFrame();saveWave();};$('resetFrame').onclick=()=>{frameColor='#f7afdd';syncFrame();saveWave();};
  const syncWave=()=>{$('waveText').value=waveText;$('waveColor').value=waveColor;$('textColor').value=textColor;waveDirty=true;};syncWave();
  $('waveText').oninput=e=>{waveText=e.target.value;waveDirty=true;saveWave();};$('waveColor').oninput=e=>{waveColor=e.target.value;waveDirty=true;saveWave();};$('textColor').oninput=e=>{textColor=e.target.value;waveDirty=true;saveWave();};
- $('resetWave').onclick=()=>{waveText='I am System Engineer';waveColor='#00b1b1';textColor='#f7afdd';syncWave();saveWave();};
+ $('resetWave').onclick=()=>{waveText='I am System Engineer';waveColor='#00b1b1';textColor='#f7afdd';textV='wave';textH='center';syncWave();syncPos();saveWave();};
  document.fonts.load('24px WaveDot').then(()=>{waveDirty=true;});setFrame('supplied');
 }
 try{init();}catch(e){error(e.message);$('start').disabled=true;$('shutter').disabled=true;}
