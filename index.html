@@ -22,6 +22,7 @@
 <label for="waveText">波の上の文字</label><input id="waveText" type="text" maxlength="60" value="I am System Engineer" placeholder="好きな文字を入力（空欄もOK）" autocomplete="off">
 <div class="wave-colors"><label>波の色<input id="waveColor" type="color" value="#00b1b1"></label><label>文字の色<input id="textColor" type="color" value="#f7afdd"></label><button id="resetWave">元に戻す</button></div>
 </div>
+<div id="frameEditor" class="wave-editor frame-editor" hidden><div class="wave-colors"><label>枠の色<input id="frameColor" type="color" value="#f7afdd"></label><button id="resetFrame">元に戻す</button></div></div>
 <input id="frameFile" type="file" accept="image/png,image/webp,image/jpeg" hidden>
 <div id="customFrame" class="custom-frame" hidden><span id="frameName"></span><button id="removeFrame" aria-label="読み込んだフレームを外す">×</button></div>
 <p class="frame-hint" id="frameHint">透過PNGを追加して、自分だけのフレームに。</p>
