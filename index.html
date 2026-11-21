@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#03b6b6"><meta name="description" content="魚眼と好きなフレームだけ。写真も動画も、見たまま撮れるカメラ。"><title>ゆるっく｜魚眼とフレーム</title><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"></head>
+<body>
+<main class="app">
+<header><a class="brand" href="./" aria-label="ゆるっく ホーム">ゆるっく<span class="fish" aria-hidden="true">◂●</span></a><button class="icon help" id="help" aria-label="使い方">?</button></header>
+<div class="intro"><p class="eyebrow">YOU LOOK. YOU CREATE.</p><h1>いつもの景色を、<br>ちょっと曲げる。</h1><p>魚眼と、好きなフレーム。それだけ。</p></div>
+<div class="source-tabs"><button id="cameraTab" class="active">撮影する</button><button id="fileTab">動画を読み込む</button></div><input id="videoFile" type="file" accept="video/*" hidden>
+<section class="camera" aria-label="カメラ">
+<div class="viewfinder" id="viewfinder">
+<canvas id="output" width="960" height="720" aria-label="魚眼とフレームを合成したプレビュー"></canvas>
+<span class="preview-label" id="previewLabel">TRY THE FISHEYE</span><span id="timer" class="timer" hidden>● 00:00</span>
+<button class="start" id="start"><span class="camera-symbol" aria-hidden="true">▣</span> カメラをひらく</button>
+</div>
+<div id="fileControls" class="file-controls" hidden><button id="playFile" aria-label="動画を再生・停止">再生</button><input id="seek" type="range" min="0" max="100" value="0" aria-label="動画の再生位置"><span id="fileTime">0:00</span></div><div class="toolbar"><span id="cameraState">まずはデモで、ぐにゃっと。</span><div><button id="pauseCamera" class="tiny" hidden>カメラOFF</button><label class="ratio-label"><span class="sr-only">画面の比率</span><select id="ratio"><option value="1.3333333333">4:3</option><option value="1.7777777778">16:9</option><option value="0.75">3:4</option><option value="0.5625">9:16</option><option value="1">1:1</option></select></label></div></div>
+<div class="control-panel">
+<div id="cameraChoices" class="camera-choices" role="group" aria-label="撮影カメラ"><button id="frontCamera" aria-pressed="false">インカメ</button><button id="backCamera" aria-pressed="true">外カメ</button></div>
+<div class="strength-row"><label for="strength">魚眼のつよさ</label><output id="strengthValue" for="strength">60</output></div>
+<input id="strength" type="range" min="0" max="120" value="60" aria-label="魚眼のつよさ">
+<div class="range-labels"><span>まっすぐ</span><span>ぐにゃぐにゃ</span></div>
+<div class="frame-row"><span class="control-label">フレーム</span><div class="frame-options" role="group" aria-label="フレームを選択"><button data-frame="none" class="swatch selected" aria-label="フレームなし" aria-pressed="true"><span class="none-mark">／</span></button><button data-frame="wave" class="swatch wave" aria-label="ピンクのなみなみ枠" aria-pressed="false"><span></span></button><button data-frame="supplied" class="swatch supplied" aria-label="文字と色を編集できる波フレーム" aria-pressed="false"><span></span></button><button id="upload" class="upload" aria-label="自分のフレームを追加">＋ 追加</button></div></div>
+<div id="waveEditor" class="wave-editor" hidden>
+<label for="waveText">波の上の文字</label><input id="waveText" type="text" maxlength="60" value="I am System Engineer" placeholder="好きな文字を入力（空欄もOK）" autocomplete="off">
+<div class="wave-colors"><label>波の色<input id="waveColor" type="color" value="#00b1b1"></label><label>文字の色<input id="textColor" type="color" value="#f7afdd"></label><button id="resetWave">元に戻す</button></div>
+</div>
+<input id="frameFile" type="file" accept="image/png,image/webp,image/jpeg" hidden>
+<div id="customFrame" class="custom-frame" hidden><span id="frameName"></span><button id="removeFrame" aria-label="読み込んだフレームを外す">×</button></div>
+<p class="frame-hint" id="frameHint">透過PNGを追加して、自分だけのフレームに。</p>
+<div class="mode" role="group" aria-label="撮影モード"><button data-mode="photo" aria-pressed="false">写真</button><button data-mode="video" aria-pressed="true" class="active">ビデオ</button></div>
+<div class="shutter-row"><button class="icon" id="lastResult" aria-label="直前の撮影をひらく" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m4 18 5-6 4 4 3-3 5 5"/></svg></button><button id="shutter" class="shutter" aria-label="録画開始" disabled><span></span></button><button class="icon" id="flip" aria-label="内カメラ・外カメラ切り替え" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 5 9.5 3h5L16 5h4a1 1 0 0 1 1 1v13H3V6a1 1 0 0 1 1-1Z"/><path d="M8 11a4 4 0 0 1 7-1l1 2m0-3v3h-3M16 14a4 4 0 0 1-7 1l-1-2m0 3v-3h3"/></svg></button></div>
+<label class="mic"><input type="checkbox" id="mic" checked>音声あり <span>・ 最長3分</span></label>
+<p id="status" role="status" aria-live="polite">カメラをひらくと、撮影できます。</p>
+</div>
+</section>
+<footer>色はそのまま。フィルターなし。<br><span>映像もフレームも、端末内で処理します。</span></footer>
+</main>
+<video id="fileSource" playsinline muted preload="metadata" aria-hidden="true"></video>
+<video id="source" playsinline muted autoplay aria-hidden="true"></video>
+<dialog id="resultDialog"><div class="dialog-head"><h2>いい感じに、撮れた？</h2><button class="close" id="closeResult" aria-label="閉じる">×</button></div><div id="resultMedia"></div><p id="resultInfo"></p><button class="primary" id="share">共有・写真に保存</button><a class="download" id="download">ファイルをダウンロード</a><p class="dialog-note">iPhoneは「共有」から画像／ビデオを保存。保存してから次の撮影へ。</p></dialog>
+<dialog id="helpDialog"><div class="dialog-head"><h2>ゆるっくの使い方</h2><button class="close" id="closeHelp" aria-label="閉じる">×</button></div><ol><li>「撮影する」か「動画を読み込む」を選択。</li><li>スライダーで魚眼のつよさを調整。</li><li>「＋追加」で透過PNGの枠を重ねる。</li><li>写真かビデオを選んで、真ん中のボタンで撮影。</li></ol><p>既存動画は最長3分まで。書き出しには動画と同じくらいの時間がかかります。読み込んだ動画の音声も含めます。</p><p>フレームは魚眼加工のあとに重なるので、枠は歪みません。追加した画像の縦横比に画面を合わせます。</p><p>録画中はこの画面を開いたままにしてください。別のアプリへ移ると録画を終了します。端末を横にしても使えます。</p><p>iPhoneではSafariで直接開いてください。動画形式はブラウザに合わせてMP4またはWebMになります。超広角レンズの選択はブラウザ・端末に依存します。</p></dialog>
+<script type="module" src="app.js"></script>
+</body></html>
