@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#03b6b6"><meta name="description" content="魚眼と好きなフレームだけ。写真も動画も、見たまま撮れるカメラ。"><title>YOUR LOVELY LOOK</title><link rel="icon" href="favicon.png?v=4" type="image/png"><link rel="apple-touch-icon" href="icon.png"><link rel="stylesheet" href="style.css?v=4"></head>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#03b6b6"><meta name="description" content="魚眼と好きなフレームだけ。写真も動画も、見たまま撮れるカメラ。"><title>YOUR LOVELY LOOK</title><link rel="icon" href="favicon.png?v=5" type="image/png"><link rel="apple-touch-icon" href="icon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"><link rel="stylesheet" href="style.css?v=5"></head>
 <body>
 <main class="app">
 <header><a class="brand" href="./" aria-label="ゆるっく ホーム"><img class="logo" src="logo.png" width="602" height="366" alt="YOUR LOVELY LOOK"></a><button class="icon help" id="help" aria-label="使い方">?</button></header>
@@ -19,6 +19,7 @@
 <div class="frame-row"><span class="control-label">フレーム</span><div class="frame-options" role="group" aria-label="フレームを選択"><button data-frame="none" class="swatch selected" aria-label="フレームなし" aria-pressed="true"><span class="none-mark">／</span></button><button data-frame="wave" class="swatch wave" aria-label="ピンクのなみなみ枠" aria-pressed="false"><span></span></button><button data-frame="supplied" class="swatch supplied" aria-label="文字と色を編集できる波フレーム" aria-pressed="false"><span></span></button><button id="upload" class="upload" aria-label="自分のフレームを追加">＋ 追加</button></div></div>
 <div id="waveEditor" class="wave-editor" hidden>
 <label for="waveText">文字</label><input id="waveText" type="text" maxlength="60" value="I am System Engineer" placeholder="すきな文字を入力" autocomplete="off">
+<div class="pos-row"><span>書体</span><div class="pos-choices" role="group" aria-label="文字の書体"><button data-font="press" class="font-press" aria-pressed="true">Press</button><button data-font="dot" class="font-dot" aria-pressed="false">ドット</button></div></div>
 <div class="pos-row"><span>たて</span><div class="pos-choices" role="group" aria-label="文字のたて位置"><button data-v="top" aria-pressed="false">上</button><button data-v="middle" aria-pressed="false">真ん中</button><button data-v="wave" aria-pressed="true">波の上</button><button data-v="bottom" aria-pressed="false">下</button></div></div>
 <div class="pos-row"><span>よこ</span><div class="pos-choices" role="group" aria-label="文字のよこ位置"><button data-h="left" aria-pressed="false">左</button><button data-h="center" aria-pressed="true">真ん中</button><button data-h="right" aria-pressed="false">右</button></div></div>
 <div class="wave-colors"><label id="waveColorLabel">波の色<input id="waveColor" type="color" value="#00b1b1"></label><label>文字の色<input id="textColor" type="color" value="#f7afdd"></label><button id="resetWave">元に戻す</button></div>
@@ -38,5 +39,5 @@
 <video id="source" playsinline muted autoplay aria-hidden="true"></video>
 <dialog id="resultDialog"><div class="dialog-head"><h2>いい感じに、撮れた？</h2><button class="close" id="closeResult" aria-label="閉じる">×</button></div><div id="resultMedia"></div><p id="resultInfo"></p><button class="primary" id="share">共有・写真に保存</button><a class="download" id="download">ファイルをダウンロード</a><p class="dialog-note">iPhoneは「共有」から画像／ビデオを保存。保存してから次の撮影へ。</p></dialog>
 <dialog id="helpDialog"><div class="dialog-head"><h2>ゆるっくの使い方</h2><button class="close" id="closeHelp" aria-label="閉じる">×</button></div><ol><li>「撮影する」か「動画を読み込む」を選択。</li><li>スライダーで魚眼のつよさを調整。</li><li>「＋追加」で透過PNGの枠を重ねる。</li><li>写真かビデオを選んで、真ん中のボタンで撮影。</li></ol><p>既存動画は最長3分まで。書き出しには動画と同じくらいの時間がかかります。読み込んだ動画の音声も含めます。</p><p>フレームは魚眼加工のあとに重なるので、枠は歪みません。追加した画像の縦横比に画面を合わせます。</p><p>録画中はこの画面を開いたままにしてください。別のアプリへ移ると録画を終了します。端末を横にしても使えます。</p><p>iPhoneではSafariで直接開いてください。動画形式はブラウザに合わせてMP4またはWebMになります。超広角レンズの選択はブラウザ・端末に依存します。</p></dialog>
-<script type="module" src="app.js?v=4"></script>
+<script type="module" src="app.js?v=5"></script>
 </body></html>

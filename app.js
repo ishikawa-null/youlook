@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const out = $('output'), ctx = out.getContext('2d', {alpha:false});
 const cameraVideo = $('source');
 let fileVideo, kind='camera', cameraStream=null, facing='environment', mode='video', strength=.6;
-let waveText='I am System Engineer', waveColor='#00b1b1', textColor='#f7afdd', frameColor='#f7afdd', textV='wave', textVPlain='bottom', textH='center';
+let waveText='I am System Engineer', waveColor='#00b1b1', textColor='#f7afdd', frameColor='#f7afdd', textV='wave', textVPlain='bottom', textH='center', textFont='press';
 const textFrames=['none','wave','supplied'];let syncPos=()=>{};
 const waveLayer=document.createElement('canvas');let waveDirty=true;
 function buildWave(){
@@ -10,14 +10,15 @@ function buildWave(){
  const waveY=x=>h*.79+h*.033*Math.cos(x/w*Math.PI*10);
  const hasWave=frame==='supplied',v=hasWave?textV:textVPlain;c.clearRect(0,0,w,h);
  if(hasWave){c.fillStyle=waveColor;c.beginPath();c.moveTo(0,h);for(let x=0;x<=w;x+=2)c.lineTo(x,waveY(x));c.lineTo(w,h);c.closePath();c.fill();}
- if(waveText){let size=h*.073;c.font=`${size}px WaveDot, monospace`;const total=c.measureText(waveText).width;if(total>w*.86)size*=w*.86/total;
- c.font=`${size}px WaveDot, monospace`;c.fillStyle=textColor;c.strokeStyle=textColor;c.lineWidth=Math.max(.4,size*.025);c.textBaseline='alphabetic';
+ if(waveText){const press=textFont==='press',family=press?"'Press Start 2P', WaveDot, monospace":'WaveDot, monospace';
+ let size=h*(press?.056:.073);c.font=`${size}px ${family}`;const total=c.measureText(waveText).width;if(total>w*.86)size*=w*.86/total;
+ c.font=`${size}px ${family}`;c.fillStyle=textColor;c.strokeStyle=textColor;c.lineJoin='miter';c.lineWidth=Math.max(.8,size*.05);c.textBaseline='alphabetic';
  const textW=c.measureText(waveText).width,margin=w*.05;let x=textH==='left'?margin:textH==='right'?w-textW-margin:(w-textW)/2;x=Math.max(0,x);
  const flatY=v==='top'?h*.05+size:v==='middle'?h*.5+size*.35:v==='bottom'?h*.915+size*.35:null;
- for(const char of Array.from(waveText)){const width=c.measureText(char).width,y=flatY??waveY(x+width/2)-size*.12;c.fillText(char,x,y);c.strokeText(char,x,y);x+=width;}}
+ for(const char of Array.from(waveText)){const width=c.measureText(char).width,y=flatY??waveY(x+width/2)-size*.12;c.fillText(char,x,y);if(!press)c.strokeText(char,x,y);x+=width;}}
  waveDirty=false;
 }
-function saveWave(){try{localStorage.setItem('youlook.wave',JSON.stringify({waveText,waveColor,textColor,frameColor,textV,textVPlain,textH}));}catch{}}
+function saveWave(){try{localStorage.setItem('youlook.wave',JSON.stringify({waveText,waveColor,textColor,frameColor,textV,textVPlain,textH,textFont}));}catch{}}
 
 let frame='none', customImage=null, cameraBusy=false, recording=false, finalizing=false;
 let recorder=null, recordingStream=null, micStream=null, chunks=[], bytes=0, started=0, recordTimer=null;
@@ -96,7 +97,7 @@ function refresh(){
  $('flip').disabled=locked||kind!=='camera';
  for(const id of ['waveText','waveColor','textColor','resetWave','frameColor','resetFrame'])$(id).disabled=locked;
  for(const id of ['ratio','upload','mic','cameraTab','fileTab','removeFrame','pauseCamera','playFile','seek'])if($(id))$(id).disabled=locked;
- document.querySelectorAll('[data-frame],[data-mode],[data-v],[data-h]').forEach(b=>b.disabled=locked);
+ document.querySelectorAll('[data-frame],[data-mode],[data-v],[data-h],[data-font]').forEach(b=>b.disabled=locked);
  $('strength').disabled=kind==='file'&&locked;
  $('start').hidden=kind==='file'?fileLoaded:!!cameraStream;
  $('start').disabled=cameraBusy||finalizing;
@@ -211,14 +212,15 @@ function init(){
  window.addEventListener('beforeunload',e=>{if(recording||finalizing){e.preventDefault();e.returnValue='';}});
  shaderCanvas.addEventListener('webglcontextlost',e=>{e.preventDefault();drawFailed=true;if(recording)stopRecording();error('映像処理が停止しました。保存後にページを開き直してください。');refresh();});
  refresh();
- try{const saved=JSON.parse(localStorage.getItem('youlook.wave')||'null');if(saved){if(typeof saved.waveText==='string')waveText=saved.waveText.slice(0,60);if(/^#[0-9a-f]{6}$/i.test(saved.waveColor))waveColor=saved.waveColor;if(/^#[0-9a-f]{6}$/i.test(saved.textColor))textColor=saved.textColor;if(/^#[0-9a-f]{6}$/i.test(saved.frameColor))frameColor=saved.frameColor;if(['top','middle','wave','bottom'].includes(saved.textV))textV=saved.textV;if(['top','middle','bottom'].includes(saved.textVPlain))textVPlain=saved.textVPlain;if(['left','center','right'].includes(saved.textH))textH=saved.textH;}}catch{}
- syncPos=()=>{const v=frame==='supplied'?textV:textVPlain;document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));document.querySelectorAll('[data-h]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.h===textH)));waveDirty=true;};syncPos();
+ try{const saved=JSON.parse(localStorage.getItem('youlook.wave')||'null');if(saved){if(typeof saved.waveText==='string')waveText=saved.waveText.slice(0,60);if(/^#[0-9a-f]{6}$/i.test(saved.waveColor))waveColor=saved.waveColor;if(/^#[0-9a-f]{6}$/i.test(saved.textColor))textColor=saved.textColor;if(/^#[0-9a-f]{6}$/i.test(saved.frameColor))frameColor=saved.frameColor;if(['top','middle','wave','bottom'].includes(saved.textV))textV=saved.textV;if(['top','middle','bottom'].includes(saved.textVPlain))textVPlain=saved.textVPlain;if(['press','dot'].includes(saved.textFont))textFont=saved.textFont;if(['left','center','right'].includes(saved.textH))textH=saved.textH;}}catch{}
+ syncPos=()=>{const v=frame==='supplied'?textV:textVPlain;document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));document.querySelectorAll('[data-h]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.h===textH)));document.querySelectorAll('[data-font]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.font===textFont)));waveDirty=true;};syncPos();
+ document.querySelectorAll('[data-font]').forEach(b=>b.onclick=()=>{textFont=b.dataset.font;syncPos();saveWave();});
  document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{if(frame==='supplied')textV=b.dataset.v;else textVPlain=b.dataset.v;syncPos();saveWave();});document.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{textH=b.dataset.h;syncPos();saveWave();});
  const syncFrame=()=>{$('frameColor').value=frameColor;document.documentElement.style.setProperty('--frame',frameColor);};syncFrame();
  $('frameColor').oninput=e=>{frameColor=e.target.value;syncFrame();saveWave();};$('resetFrame').onclick=()=>{frameColor='#f7afdd';syncFrame();saveWave();};
  const syncWave=()=>{$('waveText').value=waveText;$('waveColor').value=waveColor;$('textColor').value=textColor;waveDirty=true;};syncWave();
  $('waveText').oninput=e=>{waveText=e.target.value;waveDirty=true;saveWave();};$('waveColor').oninput=e=>{waveColor=e.target.value;waveDirty=true;saveWave();};$('textColor').oninput=e=>{textColor=e.target.value;waveDirty=true;saveWave();};
- $('resetWave').onclick=()=>{waveText='I am System Engineer';waveColor='#00b1b1';textColor='#f7afdd';textV='wave';textVPlain='bottom';textH='center';syncWave();syncPos();saveWave();};
- document.fonts.load('24px WaveDot').then(()=>{waveDirty=true;});setFrame('supplied');
+ $('resetWave').onclick=()=>{waveText='I am System Engineer';waveColor='#00b1b1';textColor='#f7afdd';textV='wave';textVPlain='bottom';textH='center';textFont='press';syncWave();syncPos();saveWave();};
+ for(const f of ['24px WaveDot',"24px 'Press Start 2P'"])document.fonts.load(f).then(()=>{waveDirty=true;}).catch(()=>{});setFrame('supplied');
 }
 try{init();}catch(e){error(e.message);$('start').disabled=true;$('shutter').disabled=true;}
