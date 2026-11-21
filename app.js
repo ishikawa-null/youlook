@@ -15,7 +15,7 @@ function buildWave(){
  c.font=`${size}px ${family}`;c.fillStyle=textColor;c.strokeStyle=textColor;c.lineJoin='miter';c.lineWidth=Math.max(.8,size*.05);c.textBaseline='alphabetic';
  const textW=c.measureText(waveText).width,margin=w*.05;let x=textH==='left'?margin:textH==='right'?w-textW-margin:(w-textW)/2;x=Math.max(0,x);
  const flatY=v==='top'?h*.05+size:v==='middle'?h*.5+size*.35:v==='bottom'?h*.915+size*.35:null;
- for(const char of Array.from(waveText)){const width=c.measureText(char).width,y=flatY??waveY(x+width/2)-size*.12;c.fillText(char,x,y);if(!press)c.strokeText(char,x,y);x+=width;}}
+ for(const char of Array.from(waveText)){const width=c.measureText(char).width,y=flatY??waveY(x+width/2)-size*.12;c.fillText(char,x,y);c.strokeText(char,x,y);x+=width;}}
  waveDirty=false;
 }
 function saveWave(){try{localStorage.setItem('youlook.wave',JSON.stringify({waveText,waveColor,textColor,frameColor,textV,textVPlain,textH,textFont}));}catch{}}
