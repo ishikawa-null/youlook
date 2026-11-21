@@ -2,20 +2,22 @@ const $ = id => document.getElementById(id);
 const out = $('output'), ctx = out.getContext('2d', {alpha:false});
 const cameraVideo = $('source');
 let fileVideo, kind='camera', cameraStream=null, facing='environment', mode='video', strength=.6;
-let waveText='I am System Engineer', waveColor='#00b1b1', textColor='#f7afdd', frameColor='#f7afdd', textV='wave', textH='center';
+let waveText='I am System Engineer', waveColor='#00b1b1', textColor='#f7afdd', frameColor='#f7afdd', textV='wave', textVPlain='bottom', textH='center';
+const textFrames=['none','wave','supplied'];let syncPos=()=>{};
 const waveLayer=document.createElement('canvas');let waveDirty=true;
 function buildWave(){
  const w=out.width,h=out.height;waveLayer.width=w;waveLayer.height=h;const c=waveLayer.getContext('2d');
  const waveY=x=>h*.79+h*.033*Math.cos(x/w*Math.PI*10);
- c.fillStyle=waveColor;c.beginPath();c.moveTo(0,h);for(let x=0;x<=w;x+=2)c.lineTo(x,waveY(x));c.lineTo(w,h);c.closePath();c.fill();
+ const hasWave=frame==='supplied',v=hasWave?textV:textVPlain;c.clearRect(0,0,w,h);
+ if(hasWave){c.fillStyle=waveColor;c.beginPath();c.moveTo(0,h);for(let x=0;x<=w;x+=2)c.lineTo(x,waveY(x));c.lineTo(w,h);c.closePath();c.fill();}
  if(waveText){let size=h*.073;c.font=`${size}px WaveDot, monospace`;const total=c.measureText(waveText).width;if(total>w*.86)size*=w*.86/total;
  c.font=`${size}px WaveDot, monospace`;c.fillStyle=textColor;c.strokeStyle=textColor;c.lineWidth=Math.max(.4,size*.025);c.textBaseline='alphabetic';
  const textW=c.measureText(waveText).width,margin=w*.05;let x=textH==='left'?margin:textH==='right'?w-textW-margin:(w-textW)/2;x=Math.max(0,x);
- const flatY=textV==='top'?h*.05+size:textV==='middle'?h*.5+size*.35:textV==='bottom'?h*.915+size*.35:null;
+ const flatY=v==='top'?h*.05+size:v==='middle'?h*.5+size*.35:v==='bottom'?h*.915+size*.35:null;
  for(const char of Array.from(waveText)){const width=c.measureText(char).width,y=flatY??waveY(x+width/2)-size*.12;c.fillText(char,x,y);c.strokeText(char,x,y);x+=width;}}
  waveDirty=false;
 }
-function saveWave(){try{localStorage.setItem('youlook.wave',JSON.stringify({waveText,waveColor,textColor,frameColor,textV,textH}));}catch{}}
+function saveWave(){try{localStorage.setItem('youlook.wave',JSON.stringify({waveText,waveColor,textColor,frameColor,textV,textVPlain,textH}));}catch{}}
 
 let frame='none', customImage=null, cameraBusy=false, recording=false, finalizing=false;
 let recorder=null, recordingStream=null, micStream=null, chunks=[], bytes=0, started=0, recordTimer=null;
@@ -59,8 +61,8 @@ function presetFrame(){
   ctx.beginPath();for(let x=m;x<=w-m;x+=3){const y=m+Math.sin((x-m)/u*50)*amp;x===m?ctx.moveTo(x,y):ctx.lineTo(x,y);}for(let y=m;y<=h-m;y+=3)ctx.lineTo(w-m+Math.sin((y-m)/u*50)*amp,y);for(let x=w-m;x>=m;x-=3)ctx.lineTo(x,h-m+Math.sin((x-m)/u*50)*amp);for(let y=h-m;y>=m;y-=3)ctx.lineTo(m+Math.sin((y-m)/u*50)*amp,y);ctx.closePath();ctx.stroke();
  }else if(frame==='check'){
   const size=u*.027;for(let x=0;x<w;x+=size)for(let y=0;y<h;y+=size){if(x<size*1.5||y<size*1.5||x>w-size*2||y>h-size*2){ctx.fillStyle=(Math.round(x/size)+Math.round(y/size))%2?'#f7afdd':'#03b6b6';ctx.fillRect(x,y,size+1,size+1);}}
- }else if(frame==='supplied'){if(waveDirty)buildWave();ctx.drawImage(waveLayer,0,0,w,h);
  }else if(frame==='custom'&&customImage){ctx.drawImage(customImage,0,0,w,h);}
+ if(textFrames.includes(frame)){if(waveDirty)buildWave();ctx.drawImage(waveLayer,0,0,w,h);}
 }
 // Canvas fallback for browsers without a WebGL context.
 function renderMesh(source,sw,sh,crop){
@@ -92,7 +94,6 @@ function refresh(){
  $('shutter').classList.toggle('recording',recording);$('shutter').classList.toggle('photo',mode==='photo');
  $('shutter').setAttribute('aria-label',recording?'録画・書き出し停止':kind==='file'?(mode==='photo'?'この場面を写真にする':'動画を書き出す'):mode==='photo'?'写真を撮る':'録画開始');
  $('flip').disabled=locked||kind!=='camera';
- $('cameraChoices').hidden=kind!=='camera';for(const [id,side] of [['frontCamera','user'],['backCamera','environment']]){$(id).disabled=locked;$(id).setAttribute('aria-pressed',String(facing===side));}
  for(const id of ['waveText','waveColor','textColor','resetWave','frameColor','resetFrame'])$(id).disabled=locked;
  for(const id of ['ratio','upload','mic','cameraTab','fileTab','removeFrame','pauseCamera','playFile','seek'])if($(id))$(id).disabled=locked;
  document.querySelectorAll('[data-frame],[data-mode],[data-v],[data-h]').forEach(b=>b.disabled=locked);
@@ -104,7 +105,7 @@ function refresh(){
  $('fileControls').hidden=kind!=='file'||!fileLoaded;
  $('cameraTab').classList.toggle('active',kind==='camera');$('fileTab').classList.toggle('active',kind==='file');
  $('previewLabel').textContent=kind==='file'?'VIDEO PREVIEW':cameraStream?'LIVE CAMERA':'TRY THE FISHEYE';
- $('cameraState').textContent=kind==='file'?'既存動画に、魚眼とフレーム。':cameraStream?(facing==='user'?'内カメラ · 左右反転で保存':'外カメラ'):'まずはデモで、ぐにゃっと。';
+ $('cameraState').textContent=kind==='file'?'既存動画に、魚眼とフレーム。':cameraStream?(facing==='user'?'内カメラ · 左右反転で保存':'外カメラ'):'';
 }
 function stopCamera(){cameraVideo.pause();if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;cameraVideo.srcObject=null;refresh();}
 async function startCamera(requested=facing){
@@ -124,7 +125,7 @@ async function startCamera(requested=facing){
  }catch(e){stopCamera();const m=e.name==='NotAllowedError'?'カメラが許可されていません。Safariのサイト設定でカメラを許可して、もう一度お試しください。':e.name==='NotFoundError'?'カメラが見つかりません。「動画を読み込む」も使えます。':e.message;error(m);}
  finally{cameraBusy=false;refresh();}
 }
-function setFrame(name){frame=name;$('waveEditor').hidden=name!=='supplied';$('frameEditor').hidden=name!=='wave';if(name==='supplied'){setSize(16/9);$('ratio').value='1.7777777778';}$('customFrame').hidden=name!=='custom';document.querySelectorAll('[data-frame]').forEach(b=>{b.classList.toggle('selected',b.dataset.frame===name);b.setAttribute('aria-pressed',String(b.dataset.frame===name));});}
+function setFrame(name){frame=name;waveDirty=true;$('waveEditor').hidden=!textFrames.includes(name);document.querySelector('[data-v=wave]').hidden=name!=='supplied';$('waveColorLabel').hidden=name!=='supplied';syncPos();$('frameEditor').hidden=name!=='wave';if(name==='supplied'){setSize(16/9);$('ratio').value='1.7777777778';}$('customFrame').hidden=name!=='custom';document.querySelectorAll('[data-frame]').forEach(b=>{b.classList.toggle('selected',b.dataset.frame===name);b.setAttribute('aria-pressed',String(b.dataset.frame===name));});}
 async function importFrame(file){
  if(!file||recording||finalizing)return;
  if(file.size>15*1024*1024){error('フレームは15MB以下の画像を選んでください。');return;}
@@ -191,7 +192,6 @@ function init(){
  $('ratio').onchange=e=>setSize(Number(e.target.value));$('start').onclick=()=>kind==='file'?$('videoFile').click():startCamera();
  $('cameraTab').onclick=()=>{if(recording||finalizing)return;kind='camera';fileVideo.pause();refresh();status('「カメラをひらく」で撮影できます。');};
  $('fileTab').onclick=()=>{if(recording||finalizing)return;$('videoFile').click();};$('videoFile').onchange=e=>{fileReady(e.target.files[0]);e.target.value='';};
- $('frontCamera').onclick=()=>startCamera('user');$('backCamera').onclick=()=>startCamera('environment');
  $('flip').onclick=()=>startCamera(facing==='user'?'environment':'user');$('pauseCamera').onclick=()=>{stopCamera();status('カメラを停止しました。');};
  document.querySelectorAll('[data-frame]').forEach(b=>b.onclick=()=>setFrame(b.dataset.frame));$('upload').onclick=()=>$('frameFile').click();$('frameFile').onchange=e=>importFrame(e.target.files[0]);$('removeFrame').onclick=()=>{customImage=null;setFrame('none');};
  document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b));});refresh();});
@@ -211,14 +211,14 @@ function init(){
  window.addEventListener('beforeunload',e=>{if(recording||finalizing){e.preventDefault();e.returnValue='';}});
  shaderCanvas.addEventListener('webglcontextlost',e=>{e.preventDefault();drawFailed=true;if(recording)stopRecording();error('映像処理が停止しました。保存後にページを開き直してください。');refresh();});
  refresh();
- try{const saved=JSON.parse(localStorage.getItem('youlook.wave')||'null');if(saved){if(typeof saved.waveText==='string')waveText=saved.waveText.slice(0,60);if(/^#[0-9a-f]{6}$/i.test(saved.waveColor))waveColor=saved.waveColor;if(/^#[0-9a-f]{6}$/i.test(saved.textColor))textColor=saved.textColor;if(/^#[0-9a-f]{6}$/i.test(saved.frameColor))frameColor=saved.frameColor;if(['top','middle','wave','bottom'].includes(saved.textV))textV=saved.textV;if(['left','center','right'].includes(saved.textH))textH=saved.textH;}}catch{}
- const syncPos=()=>{document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===textV)));document.querySelectorAll('[data-h]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.h===textH)));waveDirty=true;};syncPos();
- document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{textV=b.dataset.v;syncPos();saveWave();});document.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{textH=b.dataset.h;syncPos();saveWave();});
+ try{const saved=JSON.parse(localStorage.getItem('youlook.wave')||'null');if(saved){if(typeof saved.waveText==='string')waveText=saved.waveText.slice(0,60);if(/^#[0-9a-f]{6}$/i.test(saved.waveColor))waveColor=saved.waveColor;if(/^#[0-9a-f]{6}$/i.test(saved.textColor))textColor=saved.textColor;if(/^#[0-9a-f]{6}$/i.test(saved.frameColor))frameColor=saved.frameColor;if(['top','middle','wave','bottom'].includes(saved.textV))textV=saved.textV;if(['top','middle','bottom'].includes(saved.textVPlain))textVPlain=saved.textVPlain;if(['left','center','right'].includes(saved.textH))textH=saved.textH;}}catch{}
+ syncPos=()=>{const v=frame==='supplied'?textV:textVPlain;document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));document.querySelectorAll('[data-h]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.h===textH)));waveDirty=true;};syncPos();
+ document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{if(frame==='supplied')textV=b.dataset.v;else textVPlain=b.dataset.v;syncPos();saveWave();});document.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{textH=b.dataset.h;syncPos();saveWave();});
  const syncFrame=()=>{$('frameColor').value=frameColor;document.documentElement.style.setProperty('--frame',frameColor);};syncFrame();
  $('frameColor').oninput=e=>{frameColor=e.target.value;syncFrame();saveWave();};$('resetFrame').onclick=()=>{frameColor='#f7afdd';syncFrame();saveWave();};
  const syncWave=()=>{$('waveText').value=waveText;$('waveColor').value=waveColor;$('textColor').value=textColor;waveDirty=true;};syncWave();
  $('waveText').oninput=e=>{waveText=e.target.value;waveDirty=true;saveWave();};$('waveColor').oninput=e=>{waveColor=e.target.value;waveDirty=true;saveWave();};$('textColor').oninput=e=>{textColor=e.target.value;waveDirty=true;saveWave();};
- $('resetWave').onclick=()=>{waveText='I am System Engineer';waveColor='#00b1b1';textColor='#f7afdd';textV='wave';textH='center';syncWave();syncPos();saveWave();};
+ $('resetWave').onclick=()=>{waveText='I am System Engineer';waveColor='#00b1b1';textColor='#f7afdd';textV='wave';textVPlain='bottom';textH='center';syncWave();syncPos();saveWave();};
  document.fonts.load('24px WaveDot').then(()=>{waveDirty=true;});setFrame('supplied');
 }
 try{init();}catch(e){error(e.message);$('start').disabled=true;$('shutter').disabled=true;}
